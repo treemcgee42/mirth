@@ -1,4 +1,4 @@
-use crate::{utility::linalg::{Ray3, Point3}, config::Float};
+use crate::{utility::linalg::{Ray3, Point3, Vec3}, config::Float, textures::TextureCoordinates};
 
 use self::transform::Transform;
 
@@ -10,6 +10,8 @@ pub struct IntersectionInfo {
     pub did_hit: bool,
     pub point: Point3,
     pub t: Float,
+    pub surface_normal: Vec3,
+    pub texture_coordinates: TextureCoordinates,
 }
 
 impl Default for IntersectionInfo {
@@ -18,6 +20,8 @@ impl Default for IntersectionInfo {
             did_hit: false,
             point: Point3::default(),
             t: Float::INFINITY,
+            surface_normal: Vec3::new(0.0,0.0,0.0),
+            texture_coordinates: TextureCoordinates::default(),
         }
     }
 }

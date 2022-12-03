@@ -9,6 +9,9 @@ mod camera;
 mod scene;
 mod ray_tracer;
 mod sampler;
+mod materials;
+mod textures;
+mod light;
 
 use utility::image;
 
