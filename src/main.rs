@@ -8,6 +8,7 @@ mod shapes;
 mod camera;
 mod scene;
 mod ray_tracer;
+mod sampler;
 
 use utility::image;
 

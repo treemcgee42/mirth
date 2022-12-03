@@ -4,3 +4,4 @@
 
 pub mod linalg;
 pub mod image;
+pub mod rng;

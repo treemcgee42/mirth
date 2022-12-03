@@ -14,15 +14,13 @@ else
   set shortmess=aoO
 endif
 badd +15 ~/dev/rust/mirth/src/camera.rs
-badd +10 ~/dev/rust/mirth/src/main.rs
-badd +1 ~/dev/rust/mirth/src/scene.rs
-badd +14 ~/dev/rust/mirth/src/ray_tracer.rs
-badd +7 ~/dev/rust/mirth/src/utility/image.rs
+badd +11 ~/dev/rust/mirth/src/main.rs
+badd +11 ~/dev/rust/mirth/src/utility/rng.rs
+badd +7 ~/dev/rust/mirth/src/utility/mod.rs
 argglobal
 %argdel
-edit ~/dev/rust/mirth/src/ray_tracer.rs
+edit ~/dev/rust/mirth/src/utility/rng.rs
 argglobal
-balt ~/dev/rust/mirth/src/utility/image.rs
 setlocal fdm=marker
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -31,11 +29,11 @@ setlocal fdl=0
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 14 - ((13 * winheight(0) + 17) / 35)
+let s:l = 11 - ((10 * winheight(0) + 17) / 35)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 14
+keepjumps 11
 normal! 0
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'

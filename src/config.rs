@@ -1,8 +1,51 @@
+
+
 use tracing::{error, warn};
+
+// S==== FLOAT {{{1
 
 /// The type used for most global calculations. Should probably either be `f32` or `f64`.
 pub type Float = f32;
 pub static FLOAT_ERR: Float = 0.00001;
+
+pub trait FloatConstants {
+    fn get_pi() -> Self;
+}
+
+impl FloatConstants for f32 {
+    fn get_pi() -> f32 {
+        std::f32::consts::PI
+    }
+}
+
+impl FloatConstants for f64 {
+    fn get_pi() -> f64 {
+        std::f64::consts::PI
+    }
+}
+
+/// Idomatic way of querying which type of Float is being used. This is useful for things
+/// like querying numbers from `RandomNumberGenerator`.
+pub trait KindOfFloatCheckable {
+    fn kind() -> KindOfFloat;
+}
+
+pub enum KindOfFloat {
+    Float32,
+    Float64,
+}
+
+impl KindOfFloatCheckable for f32 {
+    fn kind() -> KindOfFloat {
+        KindOfFloat::Float32
+    }
+}
+
+impl KindOfFloatCheckable for f64 {
+    fn kind() -> KindOfFloat {
+        KindOfFloat::Float64
+    }
+}
 
 pub trait SignCheckable {
     fn is_negative(&self) -> bool;
@@ -23,6 +66,8 @@ impl SignCheckable for Float {
         !(self.is_negative()) && !(self.is_positive())
     }
 }
+
+// E==== FLOAT }}}1
 
 static MIRTH_CONFIG: Config = Config {
     acceleration_structure: AccelerationStructure {
