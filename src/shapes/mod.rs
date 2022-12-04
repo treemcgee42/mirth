@@ -3,6 +3,7 @@ use crate::{utility::linalg::{Ray3, Point3, Vec3}, config::Float, textures::Text
 use self::transform::Transform;
 
 pub mod sphere;
+pub mod quad;
 pub mod transform;
 
 #[derive(Debug)]

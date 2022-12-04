@@ -1,0 +1,6 @@
+[alias]
+localdocs = "doc --no-deps --open"
+
+[build]
+rustdocflags = "--html-in-header katex-header.html"
+
