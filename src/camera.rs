@@ -1,7 +1,7 @@
 //! Mirth treats the camera as an object in its own right. Local to camera 
-//! space, the image is centered at (0,0,1). The unit conversion from pixels
-//! is 1-1, so the top left corner is at (-width/2,height/2,1) and the bottom 
-//! right corner is at (width/2,-height/2,1). 
+//! space, the image is centered at $(0,0,-1)$. The unit conversion from pixels
+//! is 1-1, so the top left corner is at $(-w/2,h/2,-1)$ and the bottom 
+//! right corner is at $(w/2,-h/2,-1)$. 
 
 use crate::{shapes::transform::Transform, utility::linalg::{Ray3, Vec3, Point3}, config::Float};
 
@@ -10,6 +10,12 @@ pub struct Camera {
     picture_height: usize,
     top_left_corner_of_picture: Vec3,
     transform: Transform,
+}
+
+impl Camera {
+    pub fn new_from_json(json: &serde_json::Value) {
+       todo!() 
+    }
 }
 
 impl Camera {

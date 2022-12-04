@@ -1,7 +1,9 @@
-use crate::utility::linalg::{Matrix4, Point3, Vec3, Ray3, cross};
+use crate::{utility::linalg::{Matrix4, Point3, Vec3, Ray3, cross}, config::Float};
+use serde::Deserialize;
+use tracing::warn;
 
 /// Conceptually, this struct is used to move between local and global coordinates.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Transform {
     /// from local to global
     matrix: Matrix4,
@@ -58,6 +60,98 @@ impl Transform {
 
 // S==== CONSTRUCTORS {{{1
 
+// S==== PARSING {{{2
+
+/// Only used to parse from json using `serde`
+#[derive(Deserialize)]
+struct PreViewerTransform {
+    look_from: Vec3,
+    look_at: Vec3,
+    up_direction: Vec3,
+}
+
+#[derive(Deserialize)]
+struct SimpleRotation {
+    axis: Vec3,
+    angle: Float,
+}
+
+impl Transform {
+    /// For parsing from the scene file, the value of the field "transform". There are 
+    /// several ways to specify a `Transform` in json:
+    ///
+    /// # viewer type
+    /// 
+    /// Corresponds to the construction via `new_for_viewer()`, and can be specified 
+    /// as follows:
+    /// ```
+    /// {
+    ///     "viewer: {
+    ///         "look_from": Vec3,
+    ///         "look_at": Vec3,
+    ///         "up_direction": Vec3
+    ///     }
+    /// }
+    /// ```
+    /// All three fields must be specified.
+    ///
+    /// # simple sequence type
+    /// 
+    /// This is specified as a map of simple types, which are described below. It is 
+    /// specified like
+    /// ```
+    /// {
+    ///     "simple sequence": {
+    ///         Simple1,
+    ///         Simple2,
+    ///         ...
+    ///     }
+    /// }
+    /// `
+    /// 
+    /// The following are the simple types:
+    ///
+    /// ## rotation
+    /// ```
+    /// {
+    ///     "rotation": {
+    ///         "axis": Vec3,
+    ///         "angle": Float
+    ///     }
+    /// }
+    /// ```
+    /// Here, the angle is specified in degrees.
+    /// 
+    pub fn new_from_json(json: &serde_json::Value) -> Result<Self,()> {
+        if let Ok(transform) = Self::new_for_viewer_from_json(&json["viewer"]) {
+            return Ok(transform);
+        }
+
+        Err(())
+    }
+
+    /// Tries to parse the json assuming it is a "viewer" type, i.e. something that could 
+    /// be construction using `new_for_viewer`. 
+    ///
+    /// An error result means that either the json was not a viewer type, or was a viewer 
+    /// type but was written incorrectly. TODO: we should handle the latter case better.
+    fn new_for_viewer_from_json(json: &serde_json::Value) -> Result<Self, ()> {
+        let to_return: Result<PreViewerTransform, _> = serde_json::from_value(json.clone());
+
+        if let Ok(pvt) = to_return {
+            Ok(Transform::new_for_viewer(
+                &pvt.look_from, 
+                &pvt.look_at,
+                &pvt.up_direction
+            ))
+        } else {
+            Err(())
+        }
+    }
+}
+
+// E==== PARSING }}}2
+
 impl Transform {
     /// Produces a `Transform` given a matrix describing the conversion of local 
     /// coordinates to global coordinates.
@@ -95,7 +189,32 @@ impl Transform {
             inverse_matrix,
         }
     }
+
+    
 }
 
 // E==== CONSTRUCTORS }}}1
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_viewer_transform() { 
+        let json_str = r#"
+            {
+                "transform": {
+                    "look_from": [0,0,0],
+                    "look_at": [1,1,-1],
+                    "up_direction": [0,1,0]
+                }
+            }
+        "#;
+
+        let parsed_value: serde_json::Value = serde_json::from_str(json_str).unwrap();
+    
+        let transform = Transform::new_from_json(&parsed_value["transform"]).unwrap();
+        println!("{:?}", transform);
+    }
+}
 

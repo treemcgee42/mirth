@@ -5,6 +5,9 @@ use std::ops;
 use crate::config::{Float, FLOAT_ERR, SignCheckable};
 use image;
 use cgmath::{self, Transform, InnerSpace, SquareMatrix};
+use serde::Deserialize;
+
+pub type Radians = Float;
 
 pub type Color3 = Vec3;
 impl From<Color3> for image::Rgb<f32> {
@@ -25,10 +28,28 @@ impl Point3 {
 
 // S==== VECTOR {{{1
 
-#[derive(Clone, Debug)]
+// S==== SERDE {{{2
+
+#[derive(Deserialize)]
+struct PreVec3 {
+    x: Float,
+    y: Float,
+    z: Float,
+}
+
+impl From<PreVec3> for Vec3 {
+    fn from(pre_vec: PreVec3) -> Self {
+        Vec3::new(pre_vec.x, pre_vec.y, pre_vec.z)
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(from = "PreVec3")]
 pub struct Vec3 {
     internal: cgmath::Vector3<Float>,
 }
+
+// E==== SERDE }}}2
 
 impl Vec3 {
     /// Create a new vector with the specified coordinates
@@ -222,7 +243,7 @@ impl Ray3 {
 
 // S==== MATRIX {{{
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Matrix4 {
     internal: cgmath::Matrix4<Float>,
 }
@@ -262,6 +283,21 @@ impl Matrix4 {
         Self {
             internal,
         }
+    }
+
+    /// Creates a transformation matrix describing rotation around `axis` by `angle` radians.
+    pub fn new_from_axis_rotation_radians(axis: &Vec3, angle: Float) -> Self {
+        let internal = cgmath::Matrix4::from_axis_angle(axis.internal, cgmath::Rad(angle));
+
+        Self {
+            internal
+        }
+    }
+
+    /// Creates a transformation matrix describing rotation around `axis` by `angle` degrees.
+    pub fn new_from_axis_rotation_degrees(axis: &Vec3, degrees: Float) -> Self {
+        let radians: cgmath::Rad<Float> = cgmath::Deg(degrees).into();    
+        Self::new_from_axis_rotation_radians(axis, radians.0)
     }
 
     pub fn inverse(&self) -> Self {
@@ -318,4 +354,26 @@ impl OrthonormalBasis {
 }
 
 // E==== ORTHONORMAL BASIS }}}1
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn deserialize_vec3_from_json() {
+        #[derive(Deserialize)]
+        struct TestWrapper {
+            v: Vec3,
+        }
+
+        let json_str = r#"
+            {
+                "v": [0.0, 1.1, -3.2]
+            }
+        "#;
+
+        let parsed: TestWrapper = serde_json::from_str(json_str).unwrap();
+        assert!(Vec3::are_equal(&parsed.v, &Vec3::new(0.0,1.1,-3.2)));
+    }
+}
 
