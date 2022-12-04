@@ -1,4 +1,4 @@
-use crate::utility::linalg::{Matrix4, Point3, Vec3, Ray3};
+use crate::utility::linalg::{Matrix4, Point3, Vec3, Ray3, cross};
 
 /// Conceptually, this struct is used to move between local and global coordinates.
 #[derive(Clone)]
@@ -17,6 +17,8 @@ impl Default for Transform {
         }
     }
 }
+
+// S==== TRANSFORMING OBJECTS {{{1
 
 impl Transform {
     pub fn point_to_local(&self, point: &Point3) -> Point3 {
@@ -51,4 +53,49 @@ impl Transform {
         to_return
     }
 }
+
+// E==== TRANSFORMING OBJECTS }}}1
+
+// S==== CONSTRUCTORS {{{1
+
+impl Transform {
+    /// Produces a `Transform` given a matrix describing the conversion of local 
+    /// coordinates to global coordinates.
+    pub fn new_from_matrix(m: &Matrix4) -> Self {
+        let matrix = m.clone();
+        let inverse_matrix = matrix.inverse();
+
+        Self {
+            matrix,
+            inverse_matrix
+        }
+    }
+
+    /// Constructs a `Transform` in a way that something like a camera (a "viewer")
+    /// would need. Local space will be local to the viewer.
+    ///
+    /// Paramaters:
+    ///     - `look_from`: where the viewer is looking from (e.g. where it is centered)
+    ///     - `look_at`: the point the viewer is looking at 
+    ///     - `up_direction`: this is not exactly the the up direction for the transform,
+    ///     but is a general guide, since we recompute it to ensure we have an orthonormal 
+    ///     basis for the transform.
+    pub fn new_for_viewer(look_from: &Point3, look_at: &Point3, up_direction: &Vec3) -> Self {
+        // Mirth convention is +x is to the right, +y is up, and +z is into the screen
+        let e2 = (look_from - look_at).normalize(); // +z
+        let e0 = cross(up_direction, &e2).normalize(); // +x
+        let e1 = cross(&e2, &e0); // +y
+        let e3 = look_from; // translation
+
+        let matrix = Matrix4::new_from_column_vec3s([&e0,&e1,&e2,e3]);
+        let inverse_matrix = matrix.inverse();
+
+        Self {
+            matrix,
+            inverse_matrix,
+        }
+    }
+}
+
+// E==== CONSTRUCTORS }}}1
 

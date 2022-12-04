@@ -248,6 +248,32 @@ impl Matrix4 {
     }
 }
 
+impl Matrix4 {
+    /// Creates an affine transformation matrix with the provided vectors. 
+    /// The last row of this matrix is set to $(0,0,0,1)$.
+    pub fn new_from_column_vec3s(cols: [&Vec3; 4]) -> Self {
+        let internal = cgmath::Matrix4::new(
+            cols[0].x(), cols[0].y(), cols[0].z(), 0.0, // column 0
+            cols[1].x(), cols[1].y(), cols[1].z(), 0.0, // column 1
+            cols[2].x(), cols[2].y(), cols[2].z(), 0.0, // column 2
+            cols[3].x(), cols[3].y(), cols[3].z(), 1.0, // column 3
+        );
+
+        Self {
+            internal,
+        }
+    }
+
+    pub fn inverse(&self) -> Self {
+        let new_internal = self.internal.invert()
+            .expect("tried to invert a noninvertible matrix");
+
+        Matrix4 {
+            internal: new_internal
+        }
+    }
+}
+
 // E==== MATRIX }}}
 
 // S==== ORTHONORMAL BASIS {{{1 

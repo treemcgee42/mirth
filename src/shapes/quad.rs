@@ -42,7 +42,7 @@ impl Intersectable for Quad {
 
         IntersectionInfo {
             did_hit: true,
-            surface_normal: self.transform.vector_to_global(&Vec3::new(0.0,0.0,-1.0)),
+            surface_normal: self.transform.vector_to_global(&Vec3::new(0.0,0.0,1.0)),
             t,
             point: self.transform.point_to_global(&intersection_with_plane),
             texture_coordinates: TextureCoordinates::default(),

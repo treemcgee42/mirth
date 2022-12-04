@@ -18,17 +18,11 @@ impl Camera {
     /// convention, the bottom left pixel is (0,0), and the top right pixel is 
     /// (width-1,height-1).
     pub fn generate_ray(&self, pixel_x: usize, pixel_y: usize) -> Ray3 {
-        // let top_left_corner_of_picture = Vec3::new(
-        //     -1.0 * (self.picture_width as Float) / 2.0,
-        //     -1.0 * (self.picture_height as Float) / 2.0,
-        //     1.0
-        // );
-        
         let point_in_pixel = {
             let pixel_as_vector = Vec3::new(
                 pixel_x as Float,
                 pixel_y as Float,
-                0.0
+                -1.0
             );
 
             let bottom_left_corner_of_pixel = &self.top_left_corner_of_picture + pixel_as_vector;
