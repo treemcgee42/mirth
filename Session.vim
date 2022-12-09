@@ -13,16 +13,16 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +321 ~/dev/rust/mirth/src/utility/linalg.rs
-badd +18 ~/dev/rust/mirth/src/utility/scene_parser.rs
-badd +17 ~/dev/rust/mirth/src/camera.rs
-badd +122 ~/dev/rust/mirth/src/shapes/transform.rs
+badd +318 ~/dev/rust/mirth/src/utility/linalg.rs
+badd +21 ~/dev/rust/mirth/src/utility/scene_parser.rs
+badd +31 ~/dev/rust/mirth/src/camera.rs
+badd +213 ~/dev/rust/mirth/src/shapes/transform.rs
 badd +11 ~/dev/rust/mirth/Cargo.toml
 argglobal
 %argdel
 edit ~/dev/rust/mirth/src/shapes/transform.rs
 argglobal
-balt ~/dev/rust/mirth/Cargo.toml
+balt ~/dev/rust/mirth/src/utility/linalg.rs
 setlocal fdm=marker
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -31,12 +31,16 @@ setlocal fdl=0
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 122 - ((121 * winheight(0) + 17) / 35)
+64
+normal! zo
+66
+normal! zo
+let s:l = 213 - ((21 * winheight(0) + 16) / 33)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 122
-normal! 0
+keepjumps 213
+normal! 047|
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf

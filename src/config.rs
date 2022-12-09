@@ -10,17 +10,26 @@ pub static FLOAT_ERR: Float = 0.00001;
 
 pub trait FloatConstants {
     fn get_pi() -> Self;
+    fn get_1_pi() -> Self;
 }
 
 impl FloatConstants for f32 {
     fn get_pi() -> f32 {
         std::f32::consts::PI
     }
+
+    fn get_1_pi() -> Self {
+        std::f32::consts::FRAC_1_PI
+    }
 }
 
 impl FloatConstants for f64 {
     fn get_pi() -> f64 {
         std::f64::consts::PI
+    }
+
+    fn get_1_pi() -> Self {
+        std::f64::consts::FRAC_1_PI
     }
 }
 
@@ -68,6 +77,32 @@ impl SignCheckable for Float {
 }
 
 // E==== FLOAT }}}1
+
+pub enum AngleUnits {
+    Degrees,
+    Radians,
+}
+
+pub struct Angle {
+    pub amount: Float,
+    pub units: AngleUnits,
+}
+
+impl Angle {
+    pub fn as_degrees(&self) -> Float {
+        match self.units {
+            AngleUnits::Degrees => self.amount,
+            AngleUnits::Radians => Float::to_radians(self.amount),
+        }
+    }
+
+    pub fn as_radians(&self) -> Float {
+        match self.units {
+            AngleUnits::Degrees => Float::to_degrees(self.amount),
+            AngleUnits::Radians => self.amount,
+        }
+    }
+}
 
 static MIRTH_CONFIG: Config = Config {
     acceleration_structure: AccelerationStructure {

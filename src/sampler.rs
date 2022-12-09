@@ -15,6 +15,16 @@ pub fn cosine_on_2sphere_hemisphere(rng: &mut RandomNumberGenerator) -> SampleRe
     sphere_sampler_helper(rng, SphereSampleKind::CosineHemisphere)
 }
 
+pub fn uniform_in_1sphere(rng: &mut RandomNumberGenerator) -> SampleResult {
+    let r = Float::sqrt(rng.next_float());
+    let (sin_phi, cos_phi) = Float::sin_cos(2.0 * Float::get_pi() * rng.next_float());
+
+    SampleResult {
+        point: Vec3::new(cos_phi * r, sin_phi * r, 0.0),
+        pdf: Float::get_1_pi(),
+    }
+}
+
 // S==== HELPERS {{{1
 
 enum SphereSampleKind {

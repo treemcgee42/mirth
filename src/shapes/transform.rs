@@ -1,6 +1,9 @@
-use crate::{utility::linalg::{Matrix4, Point3, Vec3, Ray3, cross}, config::Float};
+
+
+use crate::{utility::linalg::{Matrix4, Point3, Vec3, Ray3, cross, Matrix4AxisRotationInfo, Matrix4TransformKind}, config::{Float, Angle, AngleUnits}};
 use serde::Deserialize;
-use tracing::warn;
+use serde_json::Map;
+use tracing::{error, warn};
 
 /// Conceptually, this struct is used to move between local and global coordinates.
 #[derive(Clone, Debug)]
@@ -76,6 +79,21 @@ struct SimpleRotation {
     angle: Float,
 }
 
+impl From<SimpleRotation> for Matrix4AxisRotationInfo {
+    fn from(sr: SimpleRotation) -> Self {
+        let axis = sr.axis;
+        let angle = Angle {
+            amount: sr.angle,
+            units: AngleUnits::Degrees,
+        };
+
+        Matrix4AxisRotationInfo {
+            axis,
+            angle,
+        }
+    }
+}
+
 impl Transform {
     /// For parsing from the scene file, the value of the field "transform". There are 
     /// several ways to specify a `Transform` in json:
@@ -107,7 +125,7 @@ impl Transform {
     ///         ...
     ///     }
     /// }
-    /// `
+    /// ```
     /// 
     /// The following are the simple types:
     ///
@@ -122,12 +140,42 @@ impl Transform {
     /// ```
     /// Here, the angle is specified in degrees.
     /// 
-    pub fn new_from_json(json: &serde_json::Value) -> Result<Self,()> {
-        if let Ok(transform) = Self::new_for_viewer_from_json(&json["viewer"]) {
-            return Ok(transform);
+    /// ## translation
+    /// ```
+    /// {
+    ///     "translation": Vec3
+    /// }
+    /// ```
+    ///
+    /// ## scale
+    /// ```
+    /// {
+    ///     "scale"
+    /// }
+    /// ```
+    pub fn new_from_json(json: &serde_json::Value) -> Result<Self, ()> {
+        // Get json as a map
+        let map: serde_json::Map<String, serde_json::Value>;
+        if let serde_json::Value::Object(obj) = json {
+            map = obj.clone();
+        } else { 
+            return Err(()); 
         }
 
-        Err(())
+        let mut keys = map.keys();
+        if keys.len() != 1 { return Err(()); }
+
+        match keys.next().unwrap().as_str() {
+            "viewer" => { 
+                return Self::new_for_viewer_from_json(&json["viewer"]); 
+            }
+            "simple sequence" => { 
+                return Self::new_from_simple_sequence_json(&json["simple sequence"]); 
+            }
+            _ => { 
+                return Err(()); 
+            }
+        };
     }
 
     /// Tries to parse the json assuming it is a "viewer" type, i.e. something that could 
@@ -147,6 +195,55 @@ impl Transform {
         } else {
             Err(())
         }
+    }
+
+    fn new_from_simple_sequence_json(json: &serde_json::Value) -> Result<Self, ()> {
+        // Convert json to map
+        let map: serde_json::Map<String, serde_json::Value>;
+        if let serde_json::Value::Object(obj) = json {
+            map = obj.clone();
+        } else {
+            return Err(());
+        }
+
+        let mut sequence: Vec<Matrix4TransformKind> = Vec::new();
+
+        // Handle each simple transform in sequence
+        for key in map.keys() {
+            match key.as_str() {
+                "rotation" => {
+                    let parsed: Result<SimpleRotation, _> 
+                        = serde_json::from_value(json["rotation"].clone());
+                    
+                    if parsed.is_err() { return Err(()); }
+                    let simple_rotation = parsed.unwrap();
+
+                    sequence.push(Matrix4TransformKind::AxisRotation(simple_rotation.into()));
+                }
+                "translation" => {
+                    let parsed: Result<Vec3, _> = serde_json::from_value(json["translation"].clone());
+
+                    if parsed.is_err() { return Err(()); }
+                    let simple_translation = parsed.unwrap();
+
+                    sequence.push(Matrix4TransformKind::Translation(simple_translation));
+                }
+                "scale" => {
+                    let parsed: Result<Vec3, _> = serde_json::from_value(json["scale"].clone());
+
+                    if parsed.is_err() { return Err(()); }
+                    let simple_scale = parsed.unwrap();
+
+                    sequence.push(Matrix4TransformKind::Translation(simple_scale));
+                }
+                _ => {
+                    return Err(());
+                }
+            }
+        }
+
+        let matrix = Matrix4::new_from_sequence(&sequence);
+        Ok(Transform::new_from_matrix(&matrix))
     }
 }
 
@@ -189,8 +286,6 @@ impl Transform {
             inverse_matrix,
         }
     }
-
-    
 }
 
 // E==== CONSTRUCTORS }}}1
@@ -207,6 +302,28 @@ mod tests {
                     "look_from": [0,0,0],
                     "look_at": [1,1,-1],
                     "up_direction": [0,1,0]
+                }
+            }
+        "#;
+
+        let parsed_value: serde_json::Value = serde_json::from_str(json_str).unwrap();
+    
+        let transform = Transform::new_from_json(&parsed_value["transform"]).unwrap();
+        println!("{:?}", transform);
+    }
+
+    #[test]
+    fn parse_simple_sequence_transform() {
+        let json_str = r#"
+            {
+                "transform": {
+                    "simple sequence": {
+                        "rotation": {
+                            "axis": [0,1,0],
+                            "angle": 90
+                        },
+                        "translation": [5,6,7]
+                    }
                 }
             }
         "#;

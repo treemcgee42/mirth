@@ -2,7 +2,7 @@
 
 use std::ops;
 
-use crate::config::{Float, FLOAT_ERR, SignCheckable};
+use crate::config::{Float, FLOAT_ERR, SignCheckable, AngleUnits, Angle};
 use image;
 use cgmath::{self, Transform, InnerSpace, SquareMatrix};
 use serde::Deserialize;
@@ -241,7 +241,7 @@ impl Ray3 {
 
 // E==== RAY }}}1
 
-// S==== MATRIX {{{
+// S==== MATRIX {{{1
 
 #[derive(Clone, Debug)]
 pub struct Matrix4 {
@@ -269,7 +269,98 @@ impl Matrix4 {
     }
 }
 
+// S==== CONSTRUCTING TRANSFORMATIONS {{{2
+
+pub enum Matrix4TransformKind {
+    AxisRotation(Matrix4AxisRotationInfo),
+    Translation(Vec3),
+    Scale(Vec3),
+}
+
+pub struct Matrix4AxisRotationInfo {
+    pub axis: Vec3,
+    pub angle: Angle,
+}
+
 impl Matrix4 {
+    
+
+    pub fn new_from_sequence(sequence: &Vec<Matrix4TransformKind>) -> Self {
+        let mut to_return = Matrix4::identity();
+
+        for transform_kind in sequence.iter() {
+            let single_transform_matrix = Self::new_from_transform_kind(transform_kind);
+            to_return = single_transform_matrix * to_return;
+        }
+
+        to_return
+    }
+    
+    fn new_from_transform_kind(kind: &Matrix4TransformKind) -> Self {
+        match kind {
+            Matrix4TransformKind::AxisRotation(rotation_info) => {
+                Self::new_from_axis_rotation(rotation_info)
+            },
+            Matrix4TransformKind::Translation(translation) => {
+                Self::new_from_translation(translation)
+            },
+            Matrix4TransformKind::Scale(scale) => {
+                Self::new_from_scale(scale)
+            }
+        }
+    }
+
+    /// Creates a transformation matrix describing rotation around an axis.
+    pub fn new_from_axis_rotation(info: &Matrix4AxisRotationInfo) -> Self {
+        let axis = info.axis.internal;
+
+        let internal: cgmath::Matrix4<Float>;
+        match info.angle.units {
+            AngleUnits::Degrees => {
+                let angle = cgmath::Deg(info.angle.amount);
+                internal = cgmath::Matrix4::from_axis_angle(axis, angle);
+            }
+            AngleUnits::Radians => {
+                let angle = cgmath::Rad(info.angle.amount);
+                internal = cgmath::Matrix4::from_axis_angle(axis, angle);
+            }
+        }
+
+        Self {
+            internal
+        }
+    }
+
+    /// Creates a transformation matrix describing the translation by `translation` (in 
+    /// homogeneous coordinates, (translation, 1)).
+    pub fn new_from_translation(translation: &Vec3) -> Self {
+        let internal = cgmath::Matrix4::from_translation(
+            cgmath::Vector3 { x: translation.x(), y: translation.y(), z: translation.z() }
+        );
+
+        Self {
+            internal,
+        }
+    }
+    
+    /// Creates a transformation matrix describing the componentwise scale `scale`. That is, 
+    /// we scale the $x$-coordinate by `scale.x()`, etc.
+    pub fn new_from_scale(scale: &Vec3) -> Self {
+        let internal = cgmath::Matrix4::from_nonuniform_scale(scale.x(), scale.y(), scale.z());
+
+        Self {
+            internal,
+        }
+    }
+}
+
+// E==== CONSTRUCTING TRANSFORMATIONS }}}2
+
+impl Matrix4 {
+    pub fn identity() -> Self {
+        Matrix4 { internal: cgmath::Matrix4::identity() }
+    }
+
     /// Creates an affine transformation matrix with the provided vectors. 
     /// The last row of this matrix is set to $(0,0,0,1)$.
     pub fn new_from_column_vec3s(cols: [&Vec3; 4]) -> Self {
@@ -285,20 +376,7 @@ impl Matrix4 {
         }
     }
 
-    /// Creates a transformation matrix describing rotation around `axis` by `angle` radians.
-    pub fn new_from_axis_rotation_radians(axis: &Vec3, angle: Float) -> Self {
-        let internal = cgmath::Matrix4::from_axis_angle(axis.internal, cgmath::Rad(angle));
-
-        Self {
-            internal
-        }
-    }
-
-    /// Creates a transformation matrix describing rotation around `axis` by `angle` degrees.
-    pub fn new_from_axis_rotation_degrees(axis: &Vec3, degrees: Float) -> Self {
-        let radians: cgmath::Rad<Float> = cgmath::Deg(degrees).into();    
-        Self::new_from_axis_rotation_radians(axis, radians.0)
-    }
+    
 
     pub fn inverse(&self) -> Self {
         let new_internal = self.internal.invert()
@@ -310,7 +388,18 @@ impl Matrix4 {
     }
 }
 
-// E==== MATRIX }}}
+impl std::ops::Mul<Matrix4> for Matrix4 {
+    type Output = Matrix4;
+
+    fn mul(self, rhs: Matrix4) -> Self::Output {
+        let internal = self.internal * rhs.internal;
+        Matrix4 {
+            internal
+        }
+    }
+}
+
+// E==== MATRIX }}}1
 
 // S==== ORTHONORMAL BASIS {{{1 
 
