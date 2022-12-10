@@ -1,4 +1,4 @@
-use crate::{utility::linalg::Color3, config::Float};
+use crate::utility::math::{vector::Color3, float::Float};
 
 
 pub type Light = Color3;

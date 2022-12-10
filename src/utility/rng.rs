@@ -7,8 +7,7 @@
 
 use rand_core::RngCore;
 use rand_pcg;
-
-use crate::config::{Float, KindOfFloatCheckable, KindOfFloat};
+use crate::utility::math::float::{Float, KindOfFloatCheckable, KindOfFloat};
 
 pub struct RandomNumberGenerator {
     internal: rand_pcg::Pcg64Mcg,

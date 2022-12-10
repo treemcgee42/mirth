@@ -4,8 +4,19 @@
 //! right corner is at $(w/2,-h/2,-1)$. 
 
 use serde::Deserialize;
-
-use crate::{shapes::transform::Transform, utility::{linalg::{Ray3, Vec3, Point3}, rng::RandomNumberGenerator}, config::{Float, Angle, AngleUnits}, sampler};
+use crate::{
+    shapes::transform::Transform, 
+    utility::{
+        math::{
+            vector::Vec3, 
+            ray::Ray3,
+            float::Float, 
+            angle::{Angle, AngleUnits}
+        }, 
+        rng::RandomNumberGenerator, 
+    },
+    sampler
+};
 
 pub struct Camera {
     resolution: Resolution,

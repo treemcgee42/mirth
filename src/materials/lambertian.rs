@@ -1,8 +1,14 @@
 use std::sync::Arc;
-
-use crate::{textures::TextureLike, utility::linalg::{OrthonormalBasis, Ray3}, sampler, light::ConvertableToLight};
-
-use super::{MaterialLike, ScatterResult};
+use crate::{
+    textures::traits::TextureLike,
+    utility::math::{
+        ray::Ray3, 
+        orthonormal_basis::OrthonormalBasis
+    }, 
+    sampler, 
+    shapes::traits::IntersectionInfo, light::ConvertableToLight
+};
+use super::traits::{MaterialLike, ScatterResult};
 
 
 pub struct Lambertian {
@@ -12,10 +18,10 @@ pub struct Lambertian {
 impl MaterialLike for Lambertian {
     fn scatter(
         &self,
-        incoming_ray: &crate::utility::linalg::Ray3, 
-        intersection_info: &crate::shapes::IntersectionInfo, 
+        incoming_ray: &Ray3, 
+        intersection_info: &IntersectionInfo, 
         rng: &mut crate::utility::rng::RandomNumberGenerator
-    ) -> super::ScatterResult {
+    ) -> ScatterResult {
         let sample_result = sampler::cosine_on_2sphere_hemisphere(rng);
 
         let scattered_direction = {

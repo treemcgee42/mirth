@@ -1,7 +1,7 @@
 //! Reading and writting to image formats
 
 use image;
-use crate::utility::linalg;
+use super::math::vector::Color3;
 
 /// Representation of an image, for decoding, writing, and encoding. Our convention is to 
 /// begin counting on the bottom left, which we denote (0, 0), as is common in math. 
@@ -24,7 +24,7 @@ impl Image {
     }
 
     /// Set the pixel (x, y) to color. Recall that (0, 0) is in the bottom left.
-    pub fn set_pixel(&mut self, x: u32, y: u32, color: linalg::Color3) {
+    pub fn set_pixel(&mut self, x: u32, y: u32, color: Color3) {
         assert!(x < self.width && y < self.height, "out of bounds index");
 
         // convert to image crate convention, which has (0, 0) in the top left corner

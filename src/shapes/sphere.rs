@@ -1,6 +1,12 @@
-use crate::{utility::linalg::{Point3, Ray3, dot}, config::{Float, SignCheckable}};
-
-use super::{Intersectable, IntersectionInfo, transform::Transform, Transformable, SurfaceLike};
+use crate::utility::math::{
+    vector::{Point3, dot}, 
+    ray::Ray3, 
+    float::{Float, SignCheckable}
+};
+use super::{
+    traits::{IntersectionInfo, Intersectable, Transformable, ShapeLike}, 
+    transform::Transform
+};
 
 pub struct Sphere {
     center: Point3,
@@ -91,11 +97,11 @@ impl Transformable for Sphere {
     }
 }
 
-impl SurfaceLike for Sphere {}
+impl ShapeLike for Sphere {}
 
 #[cfg(test)] // {{{1
 mod tests {
-    use crate::utility::linalg::Vec3;
+    use crate::utility::math::vector::Vec3;
 
     use super::*;
 

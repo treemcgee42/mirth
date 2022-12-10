@@ -1,6 +1,12 @@
 //! Methods for generating random samples (points) on various geometries.
 
-use crate::{utility::{rng::RandomNumberGenerator, linalg::{Vec3, Point3}}, config::{FloatConstants, Float}};
+use crate::utility::{
+    rng::RandomNumberGenerator, 
+    math::{
+        vector::{Vec3, Point3}, 
+        float::{FloatConstants, Float}
+    }
+};
 
 pub struct SampleResult {
     pub point: Point3,

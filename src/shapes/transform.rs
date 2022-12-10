@@ -1,9 +1,12 @@
 
-
-use crate::{utility::linalg::{Matrix4, Point3, Vec3, Ray3, cross, Matrix4AxisRotationInfo, Matrix4TransformKind}, config::{Float, Angle, AngleUnits}};
 use serde::Deserialize;
-use serde_json::Map;
-use tracing::{error, warn};
+use crate::utility::math::{
+    matrix::{Matrix4, Matrix4AxisRotationInfo, Matrix4TransformKind}, 
+    vector::{Point3, Vec3, cross}, 
+    ray::Ray3, 
+    float::Float, 
+    angle::{Angle, AngleUnits}
+};
 
 /// Conceptually, this struct is used to move between local and global coordinates.
 #[derive(Clone, Debug)]
@@ -119,11 +122,11 @@ impl Transform {
     /// specified like
     /// ```
     /// {
-    ///     "simple sequence": {
+    ///     "simple sequence": [
     ///         Simple1,
     ///         Simple2,
     ///         ...
-    ///     }
+    ///     ]
     /// }
     /// ```
     /// 
@@ -290,6 +293,8 @@ impl Transform {
 
 // E==== CONSTRUCTORS }}}1
 
+// S==== TESTS {{{1
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -334,4 +339,6 @@ mod tests {
         println!("{:?}", transform);
     }
 }
+
+// E==== TESTS }}}1
 

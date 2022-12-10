@@ -1,7 +1,15 @@
-use crate::{config::{Float, SignCheckable}, utility::linalg::Vec3, textures::TextureCoordinates};
-
-use super::{transform::Transform, Intersectable, IntersectionInfo};
-
+use crate::{
+    utility::math::{
+        float::{Float, SignCheckable},
+        vector::Vec3,
+        ray::Ray3
+    }, 
+    textures::traits::TextureCoordinates
+};
+use super::{
+    transform::Transform, 
+    traits::{Intersectable, IntersectionInfo, Transformable, ShapeLike}
+};
 
 pub struct Quad {
     width: Float,
@@ -20,7 +28,7 @@ impl Intersectable for Quad {
     /// $z$-component of $o$) by the unit rate of change of the $z$-component of 
     /// $d$ (which is the $z$-component of $d$). It then suffices to check if this
     /// point of intersection $r(t)$ with $z=0$ lies in the the square.
-    fn intersect(&self, ray: &crate::utility::linalg::Ray3) -> super::IntersectionInfo {
+    fn intersect(&self, ray: &Ray3) -> IntersectionInfo {
         let transformed_ray = self.transform.ray_to_local(ray);
 
         if transformed_ray.direction.z().is_zero() {
@@ -49,4 +57,12 @@ impl Intersectable for Quad {
         }
     }
 }
+
+impl Transformable for Quad {
+    fn get_transform(&self) -> Transform {
+        self.transform.clone()
+    }
+}
+
+impl ShapeLike for Quad {}
 
