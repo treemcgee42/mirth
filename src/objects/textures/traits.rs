@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, fmt::Debug};
 use crate::{
     utility::math::{float::Float, ray::Ray3, vector::Vec3}, 
     light::Spectrum
@@ -21,7 +21,7 @@ impl TextureCoordinates {
     }
 }
 
-pub trait TextureLike {
+pub trait TextureLike: Debug {
     fn value_at(&self, incoming_ray: &Ray3, coordinate: &TextureCoordinates) -> Arc<Spectrum>;
 }
 

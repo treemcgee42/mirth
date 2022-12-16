@@ -5,7 +5,7 @@
 
 use serde::Deserialize;
 use crate::{
-    shapes::transform::Transform, 
+    objects::shapes::transform::Transform, 
     utility::{
         math::{
             vector::Vec3, 
@@ -13,11 +13,12 @@ use crate::{
             float::Float, 
             angle::{Angle, AngleUnits}
         }, 
-        rng::RandomNumberGenerator, 
+        rng::RandomNumberGenerator, image::Resolution, 
     },
     sampler
 };
 
+#[derive(Debug)]
 pub struct Camera {
     resolution: Resolution,
     transform: Transform,
@@ -27,12 +28,7 @@ pub struct Camera {
     aperture_radius: Float,
 }
 
-#[derive(Deserialize)]
-pub struct Resolution {
-    width: Float,
-    height: Float,
-}
-
+#[derive(Debug)]
 pub struct ViewportSize {
     width: Float,
     height: Float,
@@ -50,19 +46,19 @@ impl Camera {
     ///     "transform": ViewerTransform
     /// }
     /// ```
-    pub fn new_from_json(json: &serde_json::Value) -> Result<Self, ()> {
+    pub fn new_from_json(json: &serde_json::Value) -> Result<Self, String> {
         let resolution: Resolution;
         if let Ok(resolution_) = serde_json::from_value::<Resolution>(json["resolution"].clone()) {
             resolution = resolution_;
         } else { 
-            return Err(()); 
+            return Err("failed to parse resolution".to_string()); 
         }
 
         let focal_distance: Float;
         if let Ok(focal_distance_) = serde_json::from_value::<Float>(json["focal distance"].clone()) {
             focal_distance = focal_distance_;
         } else {
-            return Err(());
+            return Err("failed to parse focal distance".to_string());
         }
 
         let vertical_fov: Angle;
@@ -72,22 +68,17 @@ impl Camera {
                 units: AngleUnits::Degrees,
             };
         } else {
-            return Err(());
+            return Err("failed to parse vertical fov".to_string());
         }
 
         let aperture_radius: Float;
         if let Ok(aperture_radius_) = serde_json::from_value::<Float>(json["aperture radius"].clone()) {
             aperture_radius = aperture_radius_;
         } else {
-            return Err(());
+            return Err("failed to parse aperture radius".to_string());
         }
 
-        let transform: Transform;
-        if let Ok(transform_) = Transform::new_from_json(&json["transform"]) {
-            transform = transform_;
-        } else { 
-            return Err(()); 
-        }
+        let transform = Transform::new_from_json(&json["transform"])?;
 
         let info = CameraInfo {
             transform,
@@ -122,7 +113,7 @@ impl Camera {
         let transform = info.transform;
         let resolution = info.resolution;
         let viewport_size = {
-            let aspect_ratio = resolution.width / resolution.height;
+            let aspect_ratio = (resolution.width as Float) / (resolution.height as Float);
 
             let height = {
                 let theta = info.vertical_fov.as_radians();
@@ -170,8 +161,8 @@ impl Camera {
         // ray intersection and a non-offset ray intersection.
 
         // These are numbers between 0 and 1.
-        let tx = pixel_x / self.resolution.width;
-        let ty = pixel_y / self.resolution.height;
+        let tx = pixel_x / (self.resolution.width as Float);
+        let ty = pixel_y / (self.resolution.height as Float);
 
         let local_ray_origin = self.aperture_radius * sampler::uniform_in_1sphere(rng).point;
         let local_ray_direction = {
@@ -192,3 +183,42 @@ impl Camera {
         self.transform.ray_to_global(&local_ray)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn camera_json_parsing() {
+        let json = r#"
+        {
+            "camera": {
+                "resolution": [600, 600],
+                "focal distance": 1,
+                "vertical fov": 90,
+                "aperture radius": 0,
+                "transform": {
+                    "viewer": {
+                        "look_at": [0,1,0],
+                        "look_from": [0,1,1],
+                        "up_direction": [0,1,0]
+                    }
+                }
+            }
+        }
+        "#;
+
+        let parsed = serde_json::from_str::<serde_json::Value>(json).unwrap();
+        let camera = {
+            let camera_result = Camera::new_from_json(&parsed["camera"]);
+            if let Err(msg) = &camera_result {
+                println!("{}", msg);
+            }
+
+            camera_result.unwrap()
+        };
+
+        println!("{:?}", camera);
+    }
+}
+

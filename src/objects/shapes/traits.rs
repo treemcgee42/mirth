@@ -1,17 +1,20 @@
 //! Collection of traits that define a shape. 
 
 use crate::{
+    objects::textures::traits::TextureCoordinates, 
     utility::math::{
-        float::Float, 
         vector::{Point3, Vec3}, 
-        ray::Ray3
-    }, 
-    textures::traits::TextureCoordinates
+        float::Float, ray::Ray3}
 };
 use super::transform::Transform;
 
-#[derive(Debug)]
-pub struct IntersectionInfo {
+/// Rusty idiom for indicating that an implementor really should be keeping track of
+/// a transform internally.
+pub trait Transformable {
+    fn get_transform(&self) -> Transform;
+}
+
+pub struct ShapeIntersectionInfo {
     pub did_hit: bool,
     pub point: Point3,
     pub t: Float,
@@ -19,7 +22,7 @@ pub struct IntersectionInfo {
     pub texture_coordinates: TextureCoordinates,
 }
 
-impl Default for IntersectionInfo {
+impl Default for ShapeIntersectionInfo {
     fn default() -> Self {
         Self {
             did_hit: false,
@@ -31,7 +34,7 @@ impl Default for IntersectionInfo {
     }
 }
 
-impl IntersectionInfo {
+impl ShapeIntersectionInfo {
     pub fn no_intersection() -> Self {
         Self {
             did_hit: false,
@@ -40,15 +43,9 @@ impl IntersectionInfo {
     }
 }
 
-pub trait Intersectable {
-    fn intersect(&self, ray: &Ray3) -> IntersectionInfo;
+pub trait IntersectableShape {
+    fn intersect(&self, ray: &Ray3) -> ShapeIntersectionInfo;
 }
 
-/// Rusty idiom for indicating that an implementor really should be keeping track of
-/// a transform internally.
-pub trait Transformable {
-    fn get_transform(&self) -> Transform;
-}
-
-pub trait ShapeLike: Intersectable + Transformable {}
+pub trait ShapeLike: IntersectableShape + Transformable {}
 

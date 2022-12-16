@@ -1,4 +1,6 @@
 
+use std::fmt::format;
+
 use serde::Deserialize;
 use crate::utility::math::{
     matrix::{Matrix4, Matrix4AxisRotationInfo, Matrix4TransformKind}, 
@@ -156,17 +158,17 @@ impl Transform {
     ///     "scale"
     /// }
     /// ```
-    pub fn new_from_json(json: &serde_json::Value) -> Result<Self, ()> {
+    pub fn new_from_json(json: &serde_json::Value) -> Result<Self, String> {
         // Get json as a map
         let map: serde_json::Map<String, serde_json::Value>;
         if let serde_json::Value::Object(obj) = json {
             map = obj.clone();
         } else { 
-            return Err(()); 
+            return Err("json passed was not a map".to_string()); 
         }
 
         let mut keys = map.keys();
-        if keys.len() != 1 { return Err(()); }
+        if keys.len() != 1 { return Err("json passed does not have exactly one key".to_string()); }
 
         match keys.next().unwrap().as_str() {
             "viewer" => { 
@@ -175,8 +177,8 @@ impl Transform {
             "simple sequence" => { 
                 return Self::new_from_simple_sequence_json(&json["simple sequence"]); 
             }
-            _ => { 
-                return Err(()); 
+            other => { 
+                return Err(format!("json passed has unknown key {}", other)); 
             }
         };
     }
@@ -186,7 +188,7 @@ impl Transform {
     ///
     /// An error result means that either the json was not a viewer type, or was a viewer 
     /// type but was written incorrectly. TODO: we should handle the latter case better.
-    fn new_for_viewer_from_json(json: &serde_json::Value) -> Result<Self, ()> {
+    fn new_for_viewer_from_json(json: &serde_json::Value) -> Result<Self, String> {
         let to_return: Result<PreViewerTransform, _> = serde_json::from_value(json.clone());
 
         if let Ok(pvt) = to_return {
@@ -196,17 +198,17 @@ impl Transform {
                 &pvt.up_direction
             ))
         } else {
-            Err(())
+            Err("could not parse viewer transform".to_string())
         }
     }
 
-    fn new_from_simple_sequence_json(json: &serde_json::Value) -> Result<Self, ()> {
+    fn new_from_simple_sequence_json(json: &serde_json::Value) -> Result<Self, String> {
         // Convert json to map
         let map: serde_json::Map<String, serde_json::Value>;
         if let serde_json::Value::Object(obj) = json {
             map = obj.clone();
         } else {
-            return Err(());
+            return Err("json passed to `new_from_simple_sequence_json()` is not a map".to_string());
         }
 
         let mut sequence: Vec<Matrix4TransformKind> = Vec::new();
@@ -218,7 +220,7 @@ impl Transform {
                     let parsed: Result<SimpleRotation, _> 
                         = serde_json::from_value(json["rotation"].clone());
                     
-                    if parsed.is_err() { return Err(()); }
+                    if parsed.is_err() { return Err("could not parse rotation".to_string()); }
                     let simple_rotation = parsed.unwrap();
 
                     sequence.push(Matrix4TransformKind::AxisRotation(simple_rotation.into()));
@@ -226,7 +228,7 @@ impl Transform {
                 "translation" => {
                     let parsed: Result<Vec3, _> = serde_json::from_value(json["translation"].clone());
 
-                    if parsed.is_err() { return Err(()); }
+                    if parsed.is_err() { return Err("could not parse translation".to_string()); }
                     let simple_translation = parsed.unwrap();
 
                     sequence.push(Matrix4TransformKind::Translation(simple_translation));
@@ -234,13 +236,13 @@ impl Transform {
                 "scale" => {
                     let parsed: Result<Vec3, _> = serde_json::from_value(json["scale"].clone());
 
-                    if parsed.is_err() { return Err(()); }
+                    if parsed.is_err() { return Err("could not parse scale".to_string()); }
                     let simple_scale = parsed.unwrap();
 
                     sequence.push(Matrix4TransformKind::Translation(simple_scale));
                 }
-                _ => {
-                    return Err(());
+                other => {
+                    return Err(format!("unknown simple transform type {}", other));
                 }
             }
         }
@@ -304,16 +306,33 @@ mod tests {
         let json_str = r#"
             {
                 "transform": {
-                    "look_from": [0,0,0],
-                    "look_at": [1,1,-1],
-                    "up_direction": [0,1,0]
+                    "viewer": {
+                        "look_from": [0,0,0],
+                        "look_at": [1,1,-1],
+                        "up_direction": [0,1,0]
+                    }
                 }
             }
         "#;
 
-        let parsed_value: serde_json::Value = serde_json::from_str(json_str).unwrap();
+        let parsed = {
+            let parsed_result = serde_json::from_str::<serde_json::Value>(json_str);
+            if let Err(msg) = &parsed_result {
+                println!("{}", msg);
+            }
+
+            parsed_result.unwrap()
+        };
     
-        let transform = Transform::new_from_json(&parsed_value["transform"]).unwrap();
+        let transform = {
+            let transform_result = Transform::new_from_json(&parsed["transform"]);
+            if let Err(msg) = &transform_result {
+                println!("{}", msg);
+            }
+
+            transform_result.unwrap()
+        };
+
         println!("{:?}", transform);
     }
 

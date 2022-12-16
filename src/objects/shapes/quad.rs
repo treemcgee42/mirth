@@ -1,23 +1,28 @@
+
+// S==== IMPORTS {{{1
+
 use crate::{
     utility::math::{
         float::{Float, SignCheckable},
         vector::Vec3,
         ray::Ray3
-    }, 
-    textures::traits::TextureCoordinates
+    }, objects::textures::traits::TextureCoordinates, 
+     
 };
 use super::{
     transform::Transform, 
-    traits::{Intersectable, IntersectionInfo, Transformable, ShapeLike}
+    traits::{Transformable, ShapeLike, IntersectableShape, ShapeIntersectionInfo}
 };
 
+// E==== IMPORTS }}}1
+
 pub struct Quad {
-    width: Float,
-    height: Float,
-    transform: Transform,
+    pub width: Float,
+    pub height: Float,
+    pub transform: Transform,
 }
 
-impl Intersectable for Quad {
+impl IntersectableShape for Quad {
     /// In local space, the quad is defined by the corners $(0,0,0)$ and 
     /// $(w,h,0)$. Let $r=o+td$ be the ray we are intersecting against, in local 
     /// space. We do not consider the origin of $r$ lying within the quad as an 
@@ -28,17 +33,17 @@ impl Intersectable for Quad {
     /// $z$-component of $o$) by the unit rate of change of the $z$-component of 
     /// $d$ (which is the $z$-component of $d$). It then suffices to check if this
     /// point of intersection $r(t)$ with $z=0$ lies in the the square.
-    fn intersect(&self, ray: &Ray3) -> IntersectionInfo {
+    fn intersect(&self, ray: &Ray3) -> ShapeIntersectionInfo {
         let transformed_ray = self.transform.ray_to_local(ray);
 
         if transformed_ray.direction.z().is_zero() {
-            return IntersectionInfo::no_intersection();
+            return ShapeIntersectionInfo::no_intersection();
         }
 
         let t = Float::abs(transformed_ray.origin.z()) / transformed_ray.direction.z();
 
         if !ray.is_in_range(t) {
-            return IntersectionInfo::no_intersection();
+            return ShapeIntersectionInfo::no_intersection();
         }
 
         let intersection_with_plane = {
@@ -48,7 +53,7 @@ impl Intersectable for Quad {
             temp
         };
 
-        IntersectionInfo {
+        ShapeIntersectionInfo {
             did_hit: true,
             surface_normal: self.transform.vector_to_global(&Vec3::new(0.0,0.0,1.0)),
             t,

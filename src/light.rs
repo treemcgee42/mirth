@@ -33,3 +33,18 @@ impl ConvertableToLight for Color3 {
     }
 }
 
+pub trait ColorConstantsQueryable {
+    fn black() -> Self;
+    fn white() -> Self;
+}
+
+impl ColorConstantsQueryable for Color3 {
+    fn black() -> Self {
+        Color3::new(0.0, 0.0, 0.0)
+    }
+
+    fn white() -> Self {
+        Color3::new(1.0, 1.0, 1.0)
+    }
+}
+

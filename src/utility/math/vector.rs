@@ -1,12 +1,18 @@
 use cgmath::InnerSpace;
 use serde::Deserialize;
 use super::float::{Float, SignCheckable};
-use std::ops;
+use std::{ops, fmt::Debug};
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(from = "PreVec3")]
 pub struct Vec3 {
     pub(crate) internal: cgmath::Vector3<Float>,
+}
+
+impl Debug for Vec3 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[{}, {}, {}]", self.x(), self.y(), self.z())
+    }
 }
 
 // S==== SERDE {{{1
@@ -178,6 +184,24 @@ impl ops::Mul<&Vec3> for Float {
 
     fn mul(self, rhs: &Vec3) -> Self::Output {
         Vec3::new(self * rhs.x(), self * rhs.y(), self * rhs.z())
+    }
+}
+
+// Vec3 / Float 
+impl ops::Div<Float> for Vec3 {
+    type Output = Vec3;
+
+    fn div(self, rhs: Float) -> Self::Output {
+        Vec3::new(self.x() / rhs, self.y() / rhs, self.z() / rhs)
+    }
+}
+
+// &Vec3 / Float 
+impl ops::Div<Float> for &Vec3 {
+    type Output = Vec3;
+
+    fn div(self, rhs: Float) -> Self::Output {
+        Vec3::new(self.x() / rhs, self.y() / rhs, self.z() / rhs)
     }
 }
 

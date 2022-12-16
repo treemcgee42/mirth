@@ -1,12 +1,17 @@
+
+// S==== IMPORTS {{{1
+
 use crate::utility::math::{
     vector::{Point3, dot}, 
     ray::Ray3, 
     float::{Float, SignCheckable}
 };
 use super::{
-    traits::{IntersectionInfo, Intersectable, Transformable, ShapeLike}, 
+    traits::{ShapeIntersectionInfo, IntersectableShape, Transformable, ShapeLike}, 
     transform::Transform
 };
+
+// E==== IMPORTS }}}1
 
 pub struct Sphere {
     center: Point3,
@@ -25,8 +30,8 @@ impl Sphere {
     }
 }
 
-impl Intersectable for Sphere { // {{{1
-    fn intersect(&self, ray: &Ray3) -> IntersectionInfo {
+impl IntersectableShape for Sphere { // {{{1
+    fn intersect(&self, ray: &Ray3) -> ShapeIntersectionInfo {
         // If the ray has equation o + td and sphere is centered at C with radius r, then if the
         // ray intersects it at the values of t such that At^2 + Bt + C = 0, where 
         // A = dot(d, d), B = 2 * dot(d, o-c), C = dot(o-c, o-c) - r^2. There is no intersection
@@ -37,7 +42,7 @@ impl Intersectable for Sphere { // {{{1
         // we can transform the ray into the sphere's coordinates, where the sphere is centered
         // at the origin.
         
-        let mut to_return = IntersectionInfo::default();
+        let mut to_return = ShapeIntersectionInfo::default();
  
         let local_ray = self.transform.ray_to_local(ray);
         let o = &local_ray.origin;
@@ -56,7 +61,7 @@ impl Intersectable for Sphere { // {{{1
         };
 
         if discriminant.is_negative() {
-            return IntersectionInfo::no_intersection();
+            return ShapeIntersectionInfo::no_intersection();
         }
 
         let t: Float = {
@@ -67,7 +72,7 @@ impl Intersectable for Sphere { // {{{1
                 // an example of when the other root is important is if we have a glass ball, 
                 // and are working with a camera ray that scattered inwards 
                 let t1 = ((-1 as Float) * b + Float::sqrt(discriminant)) / ((2 as Float) * a);
-                if !local_ray.is_in_range(t1) { return IntersectionInfo::no_intersection(); }
+                if !local_ray.is_in_range(t1) { return ShapeIntersectionInfo::no_intersection(); }
                 t1
             }
             else { t0 }
