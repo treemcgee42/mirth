@@ -1,0 +1,51 @@
+{
+	"camera": {
+		"resolution": [600, 600],
+		"focal distance": 1,
+		"vertical fov": 90,
+		"aperture radius": 0,
+        "transform": {
+			"viewer": {
+				"look_from": [0, 0, 1],
+				"look_at": [0, 0, 0],
+				"up_direction": [0, 1, 0]
+			}
+        }
+    },
+	"integrator": {
+		"kind": "ambient occlusion"	
+	},
+	"textures": [
+		{
+			"name": "red",
+			"kind": "constant",
+			"rgb color": [1, 0, 0]
+		}
+	],
+	"materials": [
+		{
+			"name": "lambertian",
+			"kind": "lambertian"
+		}
+	],
+	"objects": [
+		{
+			"shape": {
+				"kind": "sphere",
+				"center": [0, -1000, 0],
+				"radius": 1000
+			},
+			"texture": "red",
+			"material": "lambertian"
+		},
+		{
+			"shape": {
+				"kind": "sphere",
+				"center": [0, 2, 5],
+				"radius": 2
+			},
+			"texture": "red",
+			"material": "lambertian"
+		}
+	]
+}

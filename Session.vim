@@ -13,14 +13,15 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +18 src/objects/materials/parsing.rs
-badd +120 src/objects/textures/parsing.rs
-badd +34 src/main.rs
-badd +23 src/objects/textures/constant.rs
+badd +198 src/scene_parsing/mod.rs
+badd +26 scenes/two_spheres.json
+badd +61 src/scene_parsing/textures.rs
+badd +1 src/scene_parsing/shape.rs
 argglobal
 %argdel
-edit src/objects/textures/parsing.rs
+edit src/scene_parsing/textures.rs
 argglobal
+balt src/scene_parsing/shape.rs
 setlocal fdm=marker
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -29,12 +30,14 @@ setlocal fdl=0
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 120 - ((25 * winheight(0) + 16) / 33)
+2
+normal! zo
+let s:l = 61 - ((21 * winheight(0) + 16) / 33)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 120
-normal! 036|
+keepjumps 61
+normal! 037|
 if exists(':tcd') == 2 | tcd ~/dev/rust/mirth | endif
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'

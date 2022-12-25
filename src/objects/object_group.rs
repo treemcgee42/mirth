@@ -20,6 +20,10 @@ pub struct ObjectGroupIntersectionInfo {
 }
 
 impl ObjectGroup {
+    pub fn new_from_vector(objects: Vec<Rc<Object>>) -> Self {
+        Self { objects }
+    }
+
     pub fn intersect(&self, ray: &Ray3) -> ObjectGroupIntersectionInfo {
         self.intersect_unoptimized(ray)
     }

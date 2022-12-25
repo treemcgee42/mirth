@@ -1,0 +1,64 @@
+{
+    "camera": {
+		"resolution": [600, 600],
+		"focal distance": 1,
+		"vertical fov": 90,
+		"aperture radius": 0,
+        "transform": {
+			"viewer": {
+				"look_from": [0, 0, 1],
+				"look_at": [0, 0, 0],
+				"up_direction": [0, 1, 0]
+			}
+        }
+    },
+	"materials": [
+		"lambertian": {
+			"kind": "lambertian"
+		}
+	],
+	"textures": [
+		{
+			"name": "red",
+			"kind": "constant",
+			"rgb_color": [1, 0, 0]
+		}	
+	],
+	"objects": [
+		{
+			"shape": {
+				"kind": "quad",
+				"width": 1000,
+				"height": 1000,
+				"transform": {
+					"simple sequence": [
+						{
+							"rotation": {
+								"axis": [1, 0, 0],
+								"angle": 90
+							}
+						}
+					]
+				}
+			},
+			"texture": "red",
+			"material": "lambertian"
+		},
+		{
+			"shape": {
+				"kind": "sphere",
+				"center": [0, 20, 50],
+				"radius": 20,
+				"transform": {
+					"simple sequence": [
+						{
+							"translation": [0, 0, 0]
+						}
+					]
+				}
+			},
+			"texture": "red",
+			"material": "lambertian"
+		}
+	]
+}

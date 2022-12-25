@@ -4,5 +4,4 @@
 
 pub mod traits;
 pub mod lambertian;
-pub mod parsing;
 

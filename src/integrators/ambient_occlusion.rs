@@ -10,7 +10,7 @@ use super::traits::IntegratorLike;
 
 // E==== IMPORTS }}}1
 
-struct AmbientOcclusionIntegrator {}
+pub struct AmbientOcclusionIntegrator {}
 
 impl IntegratorLike for AmbientOcclusionIntegrator {
     fn spectrum_from_ray(&self, object_group: &ObjectGroup, ray: &Ray3, rng: &mut RandomNumberGenerator) -> Spectrum {

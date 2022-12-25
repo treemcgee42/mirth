@@ -117,7 +117,7 @@ impl Image {
 
 pub struct ImageBuffer {
     image: Image,
-    samples: usize,
+    samples: u32,
 }
 
 impl ImageBuffer {
@@ -128,7 +128,7 @@ impl ImageBuffer {
         }
     }
 
-    pub fn num_samples(&self) -> usize {
+    pub fn num_samples(&self) -> u32 {
         self.samples
     }
 

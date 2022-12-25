@@ -34,66 +34,6 @@ pub struct ViewportSize {
     height: Float,
 }
 
-// S==== PARSING {{{1
-
-impl Camera {
-    /// ```
-    /// "camera": {
-    ///     "resolution": [Float, Float],
-    ///     "focal distance": Float,
-    ///     "vertical fov": Float,
-    ///     "aperture radius": Float,
-    ///     "transform": ViewerTransform
-    /// }
-    /// ```
-    pub fn new_from_json(json: &serde_json::Value) -> Result<Self, String> {
-        let resolution: Resolution;
-        if let Ok(resolution_) = serde_json::from_value::<Resolution>(json["resolution"].clone()) {
-            resolution = resolution_;
-        } else { 
-            return Err("failed to parse resolution".to_string()); 
-        }
-
-        let focal_distance: Float;
-        if let Ok(focal_distance_) = serde_json::from_value::<Float>(json["focal distance"].clone()) {
-            focal_distance = focal_distance_;
-        } else {
-            return Err("failed to parse focal distance".to_string());
-        }
-
-        let vertical_fov: Angle;
-        if let Ok(vertical_fov_) = serde_json::from_value::<Float>(json["vertical fov"].clone()) {
-            vertical_fov = Angle {
-                amount: vertical_fov_,
-                units: AngleUnits::Degrees,
-            };
-        } else {
-            return Err("failed to parse vertical fov".to_string());
-        }
-
-        let aperture_radius: Float;
-        if let Ok(aperture_radius_) = serde_json::from_value::<Float>(json["aperture radius"].clone()) {
-            aperture_radius = aperture_radius_;
-        } else {
-            return Err("failed to parse aperture radius".to_string());
-        }
-
-        let transform = Transform::new_from_json(&json["transform"])?;
-
-        let info = CameraInfo {
-            transform,
-            resolution,
-            focal_distance,
-            aperture_radius,
-            vertical_fov,
-        };
-
-        Ok(Camera::new(info))
-    }
-}
-
-// E==== PARSING }}}1
-
 pub struct CameraInfo {
     pub transform: Transform,
     pub resolution: Resolution,
@@ -141,6 +81,10 @@ impl Camera {
             aperture_radius,
         }
     }
+
+    pub fn get_resolution(&self) -> Resolution {
+        self.resolution.clone()
+    }
 }
 
 impl Camera {
@@ -184,41 +128,41 @@ impl Camera {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn camera_json_parsing() {
-        let json = r#"
-        {
-            "camera": {
-                "resolution": [600, 600],
-                "focal distance": 1,
-                "vertical fov": 90,
-                "aperture radius": 0,
-                "transform": {
-                    "viewer": {
-                        "look_at": [0,1,0],
-                        "look_from": [0,1,1],
-                        "up_direction": [0,1,0]
-                    }
-                }
-            }
-        }
-        "#;
-
-        let parsed = serde_json::from_str::<serde_json::Value>(json).unwrap();
-        let camera = {
-            let camera_result = Camera::new_from_json(&parsed["camera"]);
-            if let Err(msg) = &camera_result {
-                println!("{}", msg);
-            }
-
-            camera_result.unwrap()
-        };
-
-        println!("{:?}", camera);
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//
+//     #[test]
+//     fn camera_json_parsing() {
+//         let json = r#"
+//         {
+//             "camera": {
+//                 "resolution": [600, 600],
+//                 "focal distance": 1,
+//                 "vertical fov": 90,
+//                 "aperture radius": 0,
+//                 "transform": {
+//                     "viewer": {
+//                         "look_at": [0,1,0],
+//                         "look_from": [0,1,1],
+//                         "up_direction": [0,1,0]
+//                     }
+//                 }
+//             }
+//         }
+//         "#;
+//
+//         let parsed = serde_json::from_str::<serde_json::Value>(json).unwrap();
+//         let camera = {
+//             let camera_result = Camera::new_from_json(&parsed["camera"]);
+//             if let Err(msg) = &camera_result {
+//                 println!("{}", msg);
+//             }
+//
+//             camera_result.unwrap()
+//         };
+//
+//         println!("{:?}", camera);
+//     }
+// }
 
